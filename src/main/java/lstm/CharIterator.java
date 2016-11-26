@@ -16,20 +16,21 @@ public class CharIterator implements DataSetIterator {
 
     private Random rng;
 
-    private Map<Character, Integer> charToIdMap;
-    private ArrayList<Character> allChars;
+    private Map<Character, Integer> charToIndexMap;
+    private Character[] indexToCharArray;
     private LinkedList<Integer> examplesStarts;
 
+    private Set<Character> validChars;
 
-    private char [] characters;
+    private char[] characters;
 
-
-    public CharIterator(List<String> texts, int miniBatchSize, int exampleLength, Random rng) throws IOException {
+    public CharIterator(List<String> texts, Set<Character> validChars, int miniBatchSize, int exampleLength) throws IOException {
         this.exampleLength = exampleLength;
         this.miniBatchSize = miniBatchSize;
-        this.rng = rng;
+        this.rng = new Random();
+        this.validChars = validChars;
 
-        int totalLength = texts.size();
+        int totalLength = 0;
         for (String text : texts) {
             totalLength += text.length();
         }
@@ -42,21 +43,16 @@ public class CharIterator implements DataSetIterator {
             for (char character : text) {
                 characters[index++] = character;
             }
-            characters[index++] = '\n';
         }
 
-        Set<Character> allCharsSet = new HashSet<>();
-        allChars = new ArrayList<>();
-        for (char c : characters) {
-            allCharsSet.add(c);
+        charToIndexMap = new HashMap<>();
+        indexToCharArray = new Character[validChars.size()];
+        int i = 0;
+        for (Character c : validChars) {
+            charToIndexMap.put(c, i);
+            indexToCharArray[i] = c;
+            i++;
         }
-        for (char c : allCharsSet) {
-            allChars.add(c);
-        }
-
-        charToIdMap = new HashMap<>();
-        for (int i = 0; i < allChars.size(); i++)
-            charToIdMap.put(allChars.get(i), i);
 
         initializeOffsets();
     }
@@ -86,17 +82,17 @@ public class CharIterator implements DataSetIterator {
             throw new NoSuchElementException();
 
         int currentMinibatchSize = Math.min(num, examplesStarts.size());
-        INDArray input = Nd4j.create(new int[]{currentMinibatchSize, allChars.size(), exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currentMinibatchSize, allChars.size(), exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currentMinibatchSize, validChars.size(), exampleLength}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currentMinibatchSize, validChars.size(), exampleLength}, 'f');
 
         for (int i = 0; i < currentMinibatchSize; i++) {
             int start = examplesStarts.removeFirst();
             int end = start + exampleLength;
-            int currentChar = charToIdMap.get(characters[start]);
+            int currentChar = charToIndexMap.get(characters[start]);
 
             int c = 0;
             for (int j = start + 1; j < end; j++, c++) {
-                int nextChar = charToIdMap.get(characters[j]);
+                int nextChar = charToIndexMap.get(characters[j]);
                 input.putScalar(new int[]{i, currentChar, c}, 1.0);
                 labels.putScalar(new int[]{i, nextChar, c}, 1.0);
                 currentChar = nextChar;
@@ -106,16 +102,16 @@ public class CharIterator implements DataSetIterator {
         return new DataSet(input, labels);
     }
 
-    public char convertIndexToCharacter( int idx ){
-        return allChars.get(idx);
+    public char convertIndexToCharacter(int idx) {
+        return indexToCharArray[idx];
     }
 
-    public int convertCharacterToIndex( char c ){
-        return charToIdMap.get(c);
+    public int convertCharacterToIndex(char c) {
+        return charToIndexMap.get(c);
     }
 
-    public char getRandomCharacter(){
-        return allChars.get((int) (rng.nextDouble()*allChars.size()));
+    public char getRandomCharacter() {
+        return indexToCharArray[(int) (rng.nextDouble() * validChars.size())];
     }
 
     public int totalExamples() {
@@ -123,11 +119,11 @@ public class CharIterator implements DataSetIterator {
     }
 
     public int inputColumns() {
-        return allChars.size();
+        return validChars.size();
     }
 
     public int totalOutcomes() {
-        return allChars.size();
+        return validChars.size();
     }
 
     public void reset() {
