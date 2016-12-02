@@ -14,6 +14,7 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -29,7 +30,7 @@ import java.util.Random;
 import java.util.Set;
 
 public class Lstm {
-    private int lstmLayerSize = 128;                    //Number of units in each GravesLSTM layer
+    private int lstmLayerSize = 256;                    //Number of units in each GravesLSTM layer
     private int miniBatchSize = 32;						//Size of mini batch to use when  training
     private int exampleLength = 2000;					//Length of each training example sequence to use. This could certainly be increased
     private int tbpttLength = 100;                       //Length for truncated backpropagation through time. i.e., do parameter updates ever 50 characters
@@ -107,6 +108,9 @@ public class Lstm {
 
             charIterator.reset();
         }
+
+        File file = new File("Network.zip");
+        ModelSerializer.writeModel(net, file, true);
     }
 
     public String generate() {
