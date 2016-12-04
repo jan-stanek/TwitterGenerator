@@ -1,58 +1,44 @@
-package lstm;
-
-import org.apache.commons.io.FileUtils;
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.*;
+import org.deeplearning4j.nn.conf.BackpropType;
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
-import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 public class Lstm {
-    private int lstmLayerSize = 256;                    //Number of units in each GravesLSTM layer
-    private int miniBatchSize = 32;						//Size of mini batch to use when  training
-    private int exampleLength = 2000;					//Length of each training example sequence to use. This could certainly be increased
-    private int tbpttLength = 100;                       //Length for truncated backpropagation through time. i.e., do parameter updates ever 50 characters
-    private int numEpochs = 100;                          //Total number of training epochs
-
-    private int nSamplesToGenerate = 1;                 //Number of samples to generate after each training epoch
-    private int nCharactersToSample = 140;              //Length of each sample to generate
-
-
-    private Set<Character> validChars;
-
     private CharIterator charIterator;
     private MultiLayerNetwork net;
     private Random rng;
 
+    public Lstm(CharIterator charIterator) {
+        this.charIterator = charIterator;
 
-    public Lstm(Set<Character> validChars) {
-        this.validChars = validChars;
-        int nIn = validChars.size();
-        int nOut = validChars.size();
+        int nIn = charIterator.inputColumns();
+        int nOut = charIterator.totalOutcomes();
 
         rng = new Random(12345);
+
+//        DataTypeUtil.setDTypeForContext(DataBuffer.Type.HALF);
+//        CudaEnvironment.getInstance().getConfiguration()
+//                .setMaximumDeviceCacheableLength(1024*1024*1024L)
+//                .setMaximumDeviceCache(8L*1024*1024*1024L)
+//                .setMaximumHostCacheableLength(1024*1024*1024L)
+//                .setMaximumHostCache(8L*1024*1024*1024L);
 
         UIServer uiServer = UIServer.getInstance();
         StatsStorage statsStorage = new InMemoryStatsStorage();
@@ -69,18 +55,20 @@ public class Lstm {
                 .updater(Updater.RMSPROP)
                 .list()
                 .layer(0, new GravesLSTM.Builder()
-                        .nIn(nIn).nOut(lstmLayerSize)
+                        .nIn(nIn).nOut(LstmTrain.LSTM_LAYER_SIZE)
                         .activation("tanh")
+                        .dropOut(0.2)
                         .build())
                 .layer(1, new GravesLSTM.Builder()
-                        .nIn(lstmLayerSize).nOut(lstmLayerSize)
+                        .nIn(LstmTrain.LSTM_LAYER_SIZE).nOut(LstmTrain.LSTM_LAYER_SIZE)
                         .activation("tanh")
+                        .dropOut(0.2)
                         .build())
                 .layer(2, new RnnOutputLayer.Builder(LossFunction.MCXENT)
-                        .nIn(lstmLayerSize).nOut(nOut)
+                        .nIn(LstmTrain.LSTM_LAYER_SIZE).nOut(nOut)
                         .activation("softmax")
                         .build())
-                .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
+                .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(LstmTrain.T_BP_T_T_LENGTH).tBPTTBackwardLength(LstmTrain.T_BP_T_T_LENGTH)
                 .pretrain(false).backprop(true)
                 .build();
 
@@ -90,17 +78,15 @@ public class Lstm {
         net.setListeners(new StatsListener(statsStorage));
     }
 
-    public void train(List<String> texts) throws IOException {
-        charIterator = new CharIterator(texts, validChars, miniBatchSize, exampleLength);
-
-        for (int i = 0; i < numEpochs; i++) {
+    public void train() {
+        for (int i = 0; i < LstmTrain.EPOCHS_COUNT; i++) {
             while (charIterator.hasNext()) {
                 net.fit(charIterator.next());
             }
 
             System.out.println("Epoch " + (i+1) + ":");
             for (int j = 0; j < 10; j++) {
-                String sample[] = sampleCharactersFromNetwork(nCharactersToSample, nSamplesToGenerate);
+                String sample[] = sampleCharactersFromNetwork(LstmTrain.SAMPLES_LENGTH, LstmTrain.SAMPLES_COUNT);
                 System.out.println(sample[0]);
                 System.out.println();
             }
@@ -108,22 +94,17 @@ public class Lstm {
 
             charIterator.reset();
         }
-
-        File file = new File("Network.zip");
-        ModelSerializer.writeModel(net, file, true);
     }
 
-    public String generate() {
-        String[] samples = sampleCharactersFromNetwork(nCharactersToSample, nSamplesToGenerate);
-
-        return samples[0];
+    public void save(File file) throws IOException {
+        ModelSerializer.writeModel(net, file, true);
     }
 
     private String[] sampleCharactersFromNetwork(int charactersToSample, int numSamples) {
         String initialization = String.valueOf(charIterator.getRandomCharacter());
-
         INDArray initializationInput = Nd4j.zeros(numSamples, charIterator.inputColumns(), initialization.length());
         char[] init = initialization.toCharArray();
+
         for (int i = 0; i < init.length; i++) {
             int idx = charIterator.convertCharacterToIndex(init[i]);
             for (int j = 0; j < numSamples; j++) {
@@ -134,7 +115,7 @@ public class Lstm {
         StringBuilder[] sb = new StringBuilder[numSamples];
         for (int i = 0; i < numSamples; i++)
             sb[i] = new StringBuilder(initialization);
-
+net.
         net.rnnClearPreviousState();
         INDArray output = net.rnnTimeStep(initializationInput);
         output = output.tensorAlongDimension(output.size(2) - 1, 1, 0);

@@ -1,5 +1,3 @@
-package lstm;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -8,15 +6,15 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class StringCleaner {
+public class StringTools {
 
     private List<String> texts;
 
-    public StringCleaner(List<String> texts) {
+    public StringTools(List<String> texts) {
         this.texts = texts;
     }
 
-    public StringCleaner removeDiacritic() {
+    public StringTools removeDiacritic() {
         List<String> tmp = new ArrayList<>();
 
         for (String tweet : texts) {
@@ -28,7 +26,7 @@ public class StringCleaner {
         return this;
     }
 
-    public StringCleaner replaceChars(Map<Character, Character> replaceChars) {
+    public StringTools replaceChars(Map<Character, Character> replaceChars) {
         List<String> tmp = new ArrayList<>();
 
         for (String text : texts) {
@@ -46,7 +44,33 @@ public class StringCleaner {
         return this;
     }
 
-    public StringCleaner removeInvalidChars(Set<Character> validChars) {
+    public StringTools toLowerCase() {
+        List<String> tmp = new ArrayList<>();
+
+        for (String text : texts) {
+            tmp.add(text.toLowerCase());
+        }
+
+        texts = tmp;
+
+        return this;
+    }
+
+    public StringTools copy(int count) {
+        List<String> tmp = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            for (String text : texts) {
+                tmp.add(text.toLowerCase());
+            }
+        }
+
+        texts = tmp;
+
+        return this;
+    }
+
+    public StringTools removeInvalidChars(Set<Character> validChars) {
         List<String> tmp = new ArrayList<>();
 
         for (String text : texts) {
@@ -68,7 +92,7 @@ public class StringCleaner {
         return this;
     }
 
-    public StringCleaner addNewLines() {
+    public StringTools addNewLines() {
         List<String> tmp = new ArrayList<>();
 
         for (String text : texts) {
@@ -81,7 +105,15 @@ public class StringCleaner {
         return this;
     }
 
-    public List<String> getData() {
+    public List<String> getListData() {
         return texts;
+    }
+
+    public String getStringData() {
+        String res = "";
+        for(String text : texts) {
+            res = res.concat(text);
+        }
+        return res;
     }
 }

@@ -6,11 +6,18 @@
 
     <groupId>cz.cvut.fit.pdd</groupId>
     <artifactId>TwitterPredict</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
+    <modules>
+        <module>Data</module>
+        <module>LstmTrain</module>
+        <module>LstmGenerate</module>
+    </modules>
+
     <properties>
-        <nd4j.backend>nd4j-native-platform</nd4j.backend>
-        <nd4j.version>0.7.0</nd4j.version>
+        <nd4j.version>0.7.1</nd4j.version>
+        <dl4j.version>0.7.1</dl4j.version>
     </properties>
 
     <build>
@@ -25,57 +32,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.twitter4j</groupId>
-            <artifactId>twitter4j-core</artifactId>
-            <version>[4.0,)</version>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>20.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.deeplearning4j</groupId>
-            <artifactId>deeplearning4j-core</artifactId>
-            <version>0.7.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.nd4j</groupId>
-            <artifactId>${nd4j.backend}</artifactId>
-            <version>${nd4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.nd4j</groupId>
-            <artifactId>nd4j-native-platform</artifactId>
-            <version>${nd4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.deeplearning4j</groupId>
-            <artifactId>deeplearning4j-ui_2.10</artifactId>
-            <version>${nd4j.version}</version>
-        </dependency>
-
-    </dependencies>
-
 </project>

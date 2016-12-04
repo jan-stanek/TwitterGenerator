@@ -1,58 +1,28 @@
-package lstm;
-
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.io.IOException;
 import java.util.*;
 
 public class CharIterator implements DataSetIterator {
-
-    private int exampleLength;
-    private int miniBatchSize;
-
     private Random rng;
 
+    private LinkedList<Integer> examplesStarts;
+    private char[] characters;
+    private int charsetSize;
     private Map<Character, Integer> charToIndexMap;
     private Character[] indexToCharArray;
-    private LinkedList<Integer> examplesStarts;
 
-    private Set<Character> validChars;
-
-    private char[] characters;
-
-    public CharIterator(List<String> texts, Set<Character> validChars, int miniBatchSize, int exampleLength) throws IOException {
-        this.exampleLength = exampleLength;
-        this.miniBatchSize = miniBatchSize;
+    public CharIterator(String data, int charsetSize, Map<Character, Integer> charToIndexMap, Character[] indexToCharArray) throws IOException {
         this.rng = new Random();
-        this.validChars = validChars;
 
-        int totalLength = 0;
-        for (String text : texts) {
-            totalLength += text.length();
-        }
-
-        characters = new char[totalLength];
-        int index = 0;
-
-        for (String s : texts) {
-            char[] text = s.toCharArray();
-            for (char character : text) {
-                characters[index++] = character;
-            }
-        }
-
-        charToIndexMap = new HashMap<>();
-        indexToCharArray = new Character[validChars.size()];
-        int i = 0;
-        for (Character c : validChars) {
-            charToIndexMap.put(c, i);
-            indexToCharArray[i] = c;
-            i++;
-        }
+        characters = data.toCharArray();
+        this.charsetSize = charsetSize;
+        this.charToIndexMap = charToIndexMap;
+        this.indexToCharArray = indexToCharArray;
 
         initializeOffsets();
     }
@@ -60,10 +30,10 @@ public class CharIterator implements DataSetIterator {
     private void initializeOffsets() {
         examplesStarts = new LinkedList<>();
 
-        int examplesCount = (characters.length - 1) / exampleLength - 2;
+        int examplesCount = characters.length / LstmTrain.EXAMPLES_LENGTH;
 
         for (int i = 0; i < examplesCount; i++) {
-            examplesStarts.add(i * exampleLength);
+            examplesStarts.add(i * LstmTrain.EXAMPLES_LENGTH);
         }
 
         Collections.shuffle(examplesStarts, rng);
@@ -74,7 +44,7 @@ public class CharIterator implements DataSetIterator {
     }
 
     public DataSet next() {
-        return next(miniBatchSize);
+        return next(batch());
     }
 
     public DataSet next(int num) {
@@ -82,12 +52,12 @@ public class CharIterator implements DataSetIterator {
             throw new NoSuchElementException();
 
         int currentMinibatchSize = Math.min(num, examplesStarts.size());
-        INDArray input = Nd4j.create(new int[]{currentMinibatchSize, validChars.size(), exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currentMinibatchSize, validChars.size(), exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currentMinibatchSize, charsetSize, LstmTrain.EXAMPLES_LENGTH}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currentMinibatchSize, charsetSize, LstmTrain.EXAMPLES_LENGTH}, 'f');
 
         for (int i = 0; i < currentMinibatchSize; i++) {
             int start = examplesStarts.removeFirst();
-            int end = start + exampleLength;
+            int end = start + LstmTrain.EXAMPLES_LENGTH;
             int currentChar = charToIndexMap.get(characters[start]);
 
             int c = 0;
@@ -102,8 +72,8 @@ public class CharIterator implements DataSetIterator {
         return new DataSet(input, labels);
     }
 
-    public char convertIndexToCharacter(int idx) {
-        return indexToCharArray[idx];
+    public char convertIndexToCharacter(int index) {
+        return indexToCharArray[index];
     }
 
     public int convertCharacterToIndex(char c) {
@@ -111,19 +81,19 @@ public class CharIterator implements DataSetIterator {
     }
 
     public char getRandomCharacter() {
-        return indexToCharArray[(int) (rng.nextDouble() * validChars.size())];
+        return indexToCharArray[rng.nextInt(charsetSize)];
     }
 
     public int totalExamples() {
-        return (characters.length - 1) / miniBatchSize - 2;
+        return characters.length / batch();
     }
 
     public int inputColumns() {
-        return validChars.size();
+        return charsetSize;
     }
 
     public int totalOutcomes() {
-        return validChars.size();
+        return charsetSize;
     }
 
     public void reset() {
@@ -140,7 +110,7 @@ public class CharIterator implements DataSetIterator {
     }
 
     public int batch() {
-        return miniBatchSize;
+        return LstmTrain.MINI_BATCH_SIZE;
     }
 
     public int cursor() {
