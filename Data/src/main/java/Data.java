@@ -25,7 +25,7 @@ public class Data {
             data = new StringTools(tweets)
                     .removeDiacritic()
                     .replaceChars(replaceChars)
-                    .toLowerCase()
+                    //.toLowerCase()
                     .removeInvalidChars(validChars)
                     .addNewLines()
                     //.copy(20)

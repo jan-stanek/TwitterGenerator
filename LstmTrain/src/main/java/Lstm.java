@@ -57,12 +57,10 @@ public class Lstm {
                 .layer(0, new GravesLSTM.Builder()
                         .nIn(nIn).nOut(LstmTrain.LSTM_LAYER_SIZE)
                         .activation("tanh")
-                        .dropOut(0.2)
                         .build())
                 .layer(1, new GravesLSTM.Builder()
                         .nIn(LstmTrain.LSTM_LAYER_SIZE).nOut(LstmTrain.LSTM_LAYER_SIZE)
                         .activation("tanh")
-                        .dropOut(0.2)
                         .build())
                 .layer(2, new RnnOutputLayer.Builder(LossFunction.MCXENT)
                         .nIn(LstmTrain.LSTM_LAYER_SIZE).nOut(nOut)
@@ -115,7 +113,7 @@ public class Lstm {
         StringBuilder[] sb = new StringBuilder[numSamples];
         for (int i = 0; i < numSamples; i++)
             sb[i] = new StringBuilder(initialization);
-net.
+
         net.rnnClearPreviousState();
         INDArray output = net.rnnTimeStep(initializationInput);
         output = output.tensorAlongDimension(output.size(2) - 1, 1, 0);
@@ -144,6 +142,19 @@ net.
     public int sampleFromDistribution(double[] distribution) {
         double d = rng.nextDouble();
         double sum = 0.0;
+
+        double temperature = 0.2;
+
+        for (int i = 0; i < distribution.length; i++) {
+            distribution[i] = Math.exp(Math.log(distribution[i])/temperature);
+            sum += distribution[i];
+        }
+
+        for (int i = 0; i < distribution.length; i++) {
+            distribution[i] = distribution[i]/sum;
+        }
+
+        sum = 0.0;
 
         for (int i = 0; i < distribution.length; i++) {
             sum += distribution[i];
