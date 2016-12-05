@@ -1,9 +1,6 @@
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class StringTools {
@@ -85,6 +82,47 @@ public class StringTools {
             }
 
             tmp.add(text);
+        }
+
+        texts = tmp;
+
+        return this;
+    }
+
+    public StringTools removeNoLetterTexts() {
+        List<String> tmp = new ArrayList<>();
+
+        Set<Character> letters = new HashSet<>();
+        for (char c = 'a'; c <= 'z'; c++)
+            letters.add(c);
+        for (char c = 'A'; c <= 'Z'; c++)
+            letters.add(c);
+
+        for (String text : texts) {
+            for (char c : text.toCharArray()) {
+                if (letters.contains(c)) {
+                    tmp.add(text);
+                    break;
+                }
+            }
+        }
+
+        texts = tmp;
+
+        return this;
+    }
+
+    public StringTools removeMultipleSpaces() {
+        List<String> tmp = new ArrayList<>();
+
+        Set<Character> letters = new HashSet<>();
+        for (char c = 'a'; c <= 'z'; c++)
+            letters.add(c);
+        for (char c = 'A'; c <= 'Z'; c++)
+            letters.add(c);
+
+        for (String text : texts) {
+            tmp.add(text.replaceAll("^ +| +$|( )+", "$1"));
         }
 
         texts = tmp;

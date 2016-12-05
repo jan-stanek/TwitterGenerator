@@ -14,8 +14,6 @@ public class TwitterFacade {
     private Twitter twitter;
 
     public TwitterFacade(Properties config) {
-
-
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey(config.getProperty("consumer_key"))
@@ -28,12 +26,14 @@ public class TwitterFacade {
     }
 
     public List<String> getTweets(String[] users) throws TwitterException {
-        int page = 1;
+        int page;
 
         List<Status> statuses = null;
         List<String> tweets = new ArrayList<>();
 
         for (String user : users) {
+            page = 1;
+
             while (true) {
                 Paging paging = new Paging(page++, 200);
                 statuses = twitter.getUserTimeline(user, paging);

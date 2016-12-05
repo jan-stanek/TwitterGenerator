@@ -27,6 +27,8 @@ public class Data {
                     .replaceChars(replaceChars)
                     //.toLowerCase()
                     .removeInvalidChars(validChars)
+                    .removeMultipleSpaces()
+                    .removeNoLetterTexts()
                     .addNewLines()
                     //.copy(20)
                     .getStringData();
