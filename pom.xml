@@ -12,7 +12,7 @@
     <modules>
         <module>Data</module>
         <module>LstmTrain</module>
-        <module>LstmGenerate</module>
+        <module>Web</module>
     </modules>
 
     <properties>

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+
+<h:head>
+    <title>Twitter</title>
+</h:head>
+
+<h:body>
+    <h:outputStylesheet library="css" name="style.css" />
+
+    <div class="post">
+        <div class="img">
+            <img src="https://pbs.twimg.com/profile_images/569798548091584512/tJv7LEN1.jpeg" id="profile" alt="profile" class="img-rounded" width="50" height="50"/>
+        </div>
+        <div class="name">
+            <div class="username">Jiří Ovčáček</div>
+            <div class="at">@PREZIDENTmluvci</div>
+        </div>
+        <div class="message">
+            <h:outputText value="#{tweetBean.tweet}"/>
+        </div>
+    </div>
+
+
+</h:body>
+</html>

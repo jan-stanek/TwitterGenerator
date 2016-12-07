@@ -1,0 +1,53 @@
+* {
+    font-family: arial;
+    font-size: 12px;
+    color: rgb(91, 91, 91);
+    line-height: 16.5px;
+}
+
+body {
+    background-color: #6F7071;
+}
+
+.post {
+    width: 428px;
+    background-color: #fff;
+    padding: 30px 30px 30px 30px;
+    border-radius: 5px;
+    margin: 50px auto 0 auto;
+}
+
+.img {
+    float: left;
+    height: 50px;
+    width: 60px;
+}
+
+.img-rounded {
+    border-radius: 6px;
+}
+
+.name {
+    padding-top: 9px;
+}
+
+.at {
+    color: rgb(153, 153, 153);
+    font-size: 14px;
+    height: 16px;
+    padding-top: 4px;
+}
+
+.username {
+    color: rgb(51, 51, 51);
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.message {
+    color: rgb(51, 51, 53);
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 22px;
+    line-height: 26.4px;
+    margin: 15px 0 0 0;
+}
