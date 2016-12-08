@@ -2,12 +2,14 @@ package cz.fit.pdd.TwitterPredict;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.io.Serializable;
 
 @Named
 @RequestScoped
-public class TweetBean {
+public class TweetBean implements Serializable {
 
     private String tweet;
 
@@ -15,11 +17,11 @@ public class TweetBean {
     private LstmBean lstmBean;
 
     @PostConstruct
-    void init() {
-        tweet = lstmBean.getGeneratedTweet();
+    public void init() {
+
     }
 
     public String getTweet() {
-        return tweet;
+        return lstmBean.getGeneratedTweet();
     }
 }

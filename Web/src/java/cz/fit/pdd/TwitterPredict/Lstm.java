@@ -25,7 +25,11 @@ public class Lstm {
     }
 
     private String[] sampleCharactersFromNetwork(int charactersToSample, int numSamples) {
-        Character[] chars = (Character[]) LstmBean.characterSet.toArray();
+        Character[] chars = new Character[LstmBean.characterSet.size()];
+        int k = 0;
+        for (Character c : LstmBean.characterSet) {
+            chars[k++] = c;
+        }
         int random = rng.nextInt(chars.length);
 
         String initialization = String.valueOf(chars[random]);

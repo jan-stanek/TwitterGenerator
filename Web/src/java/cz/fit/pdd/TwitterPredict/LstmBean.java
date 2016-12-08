@@ -8,6 +8,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,7 +19,7 @@ import java.util.Set;
 
 @Named
 @ApplicationScoped
-public class LstmBean {
+public class LstmBean implements Serializable {
     public static Map<Character, Integer> charToIndexMap;
     public static Character[] indexToCharArray;
     public static Set<Character> characterSet;
@@ -25,12 +29,17 @@ public class LstmBean {
     @PostConstruct
     public void init() {
         try {
-            File dataFile = new File("data.txt");
-            String data = Files.toString(dataFile, Charsets.UTF_8);
+            ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
+            String dataPath = classloader.getResource("tmp/data.txt").getFile();
+            URL dataUrl = new URL("file://" + dataPath);
+            File dataFile = new File(URLDecoder.decode(dataUrl.getFile(), "UTF-8" ));
+            String data = Files.toString(dataFile, Charsets.UTF_8);
             createCharacterSet(data);
 
-            File netFile = new File("net.zip");
+            String netPath = classloader.getResource("tmp/net.zip").getFile();
+            URL netUrl = new URL("file://" + netPath);
+            File netFile = new File(URLDecoder.decode(netUrl.getFile(), "UTF-8" ));
             lstm = new Lstm(netFile);
         } catch (IOException e) {
             e.printStackTrace();
