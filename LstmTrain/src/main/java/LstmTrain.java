@@ -16,10 +16,10 @@ import java.util.Set;
  */
 public class LstmTrain {
     public static int LSTM_LAYER_SIZE = 256;        //Number of units in each GravesLSTM layer
-    public static int MINI_BATCH_SIZE = 64;		//Size of mini batch to use when  training
-    public static int EXAMPLES_LENGTH = 500;		//Length of each training example sequence to use. This could certainly be increased
+    public static int MINI_BATCH_SIZE = 32;		//Size of mini batch to use when  training
+    public static int EXAMPLES_LENGTH = 140;		//Length of each training example sequence to use. This could certainly be increased
     public static int T_BP_T_T_LENGTH = 50;        //Length for truncated backpropagation through time. i.e., do parameter updates ever 50 characters
-    public static int EPOCHS_COUNT = 50;           //Total number of training epochs
+    public static int EPOCHS_COUNT = 1000;           //Total number of training epochs
 
     public static int SAMPLES_COUNT = 1;            //Number of samples to generate after each training epoch
     public static int SAMPLES_LENGTH = 140;         //Length of each sample to generate
@@ -31,17 +31,15 @@ public class LstmTrain {
     public static void main(String[] args) {
         try {
             File dataFile = new File("tmp/data.txt");
-            String data = Files.toString(dataFile, Charsets.UTF_8);
+            File netDir = new File("tmp/");
 
+            String data = Files.toString(dataFile, Charsets.UTF_8);
             createCharacterSet(data);
 
             CharIterator charIterator = new CharIterator(data, characterSet.size(), charToIndexMap, indexToCharArray);
 
             Lstm lstm = new Lstm(charIterator);
-            lstm.train();
-
-            File netFile = new File("tmp/net.zip");
-            lstm.save(netFile);
+            lstm.train(netDir);
         } catch (IOException e) {
             e.printStackTrace();
         }

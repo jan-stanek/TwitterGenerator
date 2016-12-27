@@ -134,7 +134,7 @@ public class StringTools {
         List<String> tmp = new ArrayList<>();
 
         for (String text : texts) {
-            text = text.concat("\n");
+            text = text.concat("\0");
             tmp.add(text);
         }
 

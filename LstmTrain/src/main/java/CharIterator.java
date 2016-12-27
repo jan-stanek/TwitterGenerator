@@ -19,7 +19,25 @@ public class CharIterator implements DataSetIterator {
     public CharIterator(String data, int charsetSize, Map<Character, Integer> charToIndexMap, Character[] indexToCharArray) throws IOException {
         this.rng = new Random();
 
-        characters = data.toCharArray();
+        String[] dataLines = data.split("\0");
+
+        char[][] dataLinesChar = new char[dataLines.length][LstmTrain.EXAMPLES_LENGTH];
+
+        for (int i = 0; i < dataLines.length; i++) {
+            char[] line = dataLines[i].toCharArray();
+            for (int j = 0; j < line.length; j++) {
+                dataLinesChar[i][j] = line[j];
+            }
+        }
+
+        characters = new char[dataLines.length * LstmTrain.EXAMPLES_LENGTH];
+
+        for (int i = 0; i < dataLines.length; i++) {
+            for (int j = 0; j < LstmTrain.EXAMPLES_LENGTH; j++) {
+                characters[i * LstmTrain.EXAMPLES_LENGTH + j] = dataLinesChar[i][j];
+            }
+        }
+
         this.charsetSize = charsetSize;
         this.charToIndexMap = charToIndexMap;
         this.indexToCharArray = indexToCharArray;

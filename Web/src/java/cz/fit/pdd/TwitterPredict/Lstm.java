@@ -7,6 +7,7 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.IllegalFormatException;
 import java.util.Random;
 
 public class Lstm {
@@ -25,51 +26,53 @@ public class Lstm {
     }
 
     private String[] sampleCharactersFromNetwork(int charactersToSample, int numSamples) {
-        Character[] chars = new Character[LstmBean.characterSet.size()];
-        int k = 0;
-        for (Character c : LstmBean.characterSet) {
-            chars[k++] = c;
-        }
-        int random = rng.nextInt(chars.length);
-
-        String initialization = String.valueOf(chars[random]);
-        INDArray initializationInput = Nd4j.zeros(numSamples, LstmBean.characterSet.size(), initialization.length());
-        char[] init = initialization.toCharArray();
-
-        for (int i = 0; i < init.length; i++) {
-            int idx = LstmBean.charToIndexMap.get(init[i]);
-            for (int j = 0; j < numSamples; j++) {
-                initializationInput.putScalar(new int[]{j, idx, i}, 1f);
+            Character[] startCharacters = new Character[LstmBean.startCharactersSet.size()];
+            int k = 0;
+            for (Character c : LstmBean.startCharactersSet) {
+                startCharacters[k++] = c;
             }
-        }
+            int random = rng.nextInt(startCharacters.length);
 
-        StringBuilder[] sb = new StringBuilder[numSamples];
-        for (int i = 0; i < numSamples; i++)
-            sb[i] = new StringBuilder(initialization);
+            String initialization = String.valueOf(startCharacters[random]);
+            INDArray initializationInput = Nd4j.zeros(numSamples, LstmBean.characterSet.size(), initialization.length());
+            char[] init = initialization.toCharArray();
 
-        net.rnnClearPreviousState();
-        INDArray output = net.rnnTimeStep(initializationInput);
-        output = output.tensorAlongDimension(output.size(2) - 1, 1, 0);
-
-        for (int i = 0; i < charactersToSample; i++) {
-            INDArray nextInput = Nd4j.zeros(numSamples, LstmBean.characterSet.size());
-
-            for (int s = 0; s < numSamples; s++) {
-                double[] outputProbDistribution = new double[LstmBean.characterSet.size()];
-                for (int j = 0; j < outputProbDistribution.length; j++)
-                    outputProbDistribution[j] = output.getDouble(s, j);
-                int sampledCharacterIdx = sampleFromDistribution(outputProbDistribution);
-
-                nextInput.putScalar(new int[]{s, sampledCharacterIdx}, 1f);
-                sb[s].append(LstmBean.indexToCharArray[sampledCharacterIdx]);
+            for (int i = 0; i < init.length; i++) {
+                int idx = LstmBean.charToIndexMap.get(init[i]);
+                for (int j = 0; j < numSamples; j++) {
+                    initializationInput.putScalar(new int[]{j, idx, i}, 1f);
+                }
             }
 
-            output = net.rnnTimeStep(nextInput);    //Do one time step of forward pass
-        }
+            StringBuilder[] sb = new StringBuilder[numSamples];
+            for (int i = 0; i < numSamples; i++)
+                sb[i] = new StringBuilder(initialization);
 
-        String[] out = new String[numSamples];
-        for (int i = 0; i < numSamples; i++) out[i] = sb[i].toString();
-        return out;
+            net.rnnClearPreviousState();
+            INDArray output = net.rnnTimeStep(initializationInput);
+            output = output.tensorAlongDimension(output.size(2) - 1, 1, 0);
+
+            INDArray nextInput;
+            for (int i = 0; i < charactersToSample; i++) {
+                nextInput = Nd4j.zeros(numSamples, LstmBean.characterSet.size());
+
+                for (int s = 0; s < numSamples; s++) {
+                    double[] outputProbDistribution = new double[LstmBean.characterSet.size()];
+                    for (int j = 0; j < outputProbDistribution.length; j++)
+                        outputProbDistribution[j] = output.getDouble(s, j);
+                    int sampledCharacterIdx = sampleFromDistribution(outputProbDistribution);
+
+                    nextInput.putScalar(new int[]{s, sampledCharacterIdx}, 1f);
+                    Character c = LstmBean.indexToCharArray[sampledCharacterIdx];
+                    sb[s].append(LstmBean.indexToCharArray[sampledCharacterIdx]);
+                }
+
+                output = net.rnnTimeStep(nextInput);    //Do one time step of forward pass
+            }
+
+            String[] out = new String[numSamples];
+            for (int i = 0; i < numSamples; i++) out[i] = sb[i].toString();
+            return out;
     }
 
     public int sampleFromDistribution(double[] distribution) {

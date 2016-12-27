@@ -23,6 +23,7 @@ public class LstmBean implements Serializable {
     public static Map<Character, Integer> charToIndexMap;
     public static Character[] indexToCharArray;
     public static Set<Character> characterSet;
+    public static Set<Character> startCharactersSet;
 
     private Lstm lstm;
 
@@ -61,6 +62,13 @@ public class LstmBean implements Serializable {
             charToIndexMap.put(c, i);
             indexToCharArray[i] = c;
             i++;
+        }
+
+        startCharactersSet = new HashSet<>();
+
+        String[] lines = data.split("\0");
+        for (String s : lines) {
+            startCharactersSet.add(s.charAt(0));
         }
     }
 

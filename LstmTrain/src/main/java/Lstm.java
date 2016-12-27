@@ -1,9 +1,6 @@
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.BackpropType;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -76,26 +73,27 @@ public class Lstm {
         net.setListeners(new StatsListener(statsStorage));
     }
 
-    public void train() {
-        for (int i = 0; i < LstmTrain.EPOCHS_COUNT; i++) {
+    public void train(File netDir) throws IOException {
+        for (int i = 1; i <= LstmTrain.EPOCHS_COUNT; i++) {
             while (charIterator.hasNext()) {
                 net.fit(charIterator.next());
             }
 
-            System.out.println("Epoch " + (i+1) + ":");
+            System.out.println("Epoch " + i + ":");
             for (int j = 0; j < 10; j++) {
                 String sample[] = sampleCharactersFromNetwork(LstmTrain.SAMPLES_LENGTH, LstmTrain.SAMPLES_COUNT);
                 System.out.println(sample[0]);
-                System.out.println();
             }
             System.out.println();
+
+            save(netDir, i);
 
             charIterator.reset();
         }
     }
 
-    public void save(File file) throws IOException {
-        ModelSerializer.writeModel(net, file, true);
+    public void save(File file, int epoch) throws IOException {
+        ModelSerializer.writeModel(net, new File(file.getPath() + "/net_" + epoch + ".zip"), false);
     }
 
     private String[] sampleCharactersFromNetwork(int charactersToSample, int numSamples) {
