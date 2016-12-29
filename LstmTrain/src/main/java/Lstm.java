@@ -47,7 +47,7 @@ public class Lstm {
                 .rmsDecay(0.95)
                 .seed(12345)
                 .regularization(true)
-                .l2(0.001)
+                .l2(0.002)
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.RMSPROP)
                 .list()

@@ -18,7 +18,7 @@ public class LstmTrain {
     public static int LSTM_LAYER_SIZE = 256;        //Number of units in each GravesLSTM layer
     public static int MINI_BATCH_SIZE = 32;		//Size of mini batch to use when  training
     public static int EXAMPLES_LENGTH = 140;		//Length of each training example sequence to use. This could certainly be increased
-    public static int T_BP_T_T_LENGTH = 50;        //Length for truncated backpropagation through time. i.e., do parameter updates ever 50 characters
+    public static int T_BP_T_T_LENGTH = 70;        //Length for truncated backpropagation through time. i.e., do parameter updates ever 50 characters
     public static int EPOCHS_COUNT = 1000;           //Total number of training epochs
 
     public static int SAMPLES_COUNT = 1;            //Number of samples to generate after each training epoch

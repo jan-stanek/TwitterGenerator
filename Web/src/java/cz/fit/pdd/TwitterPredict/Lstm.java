@@ -16,7 +16,7 @@ public class Lstm {
     private Random rng;
 
     public Lstm(File netFile) throws IOException {
-        rng = new Random(12345);
+        rng = new Random(System.currentTimeMillis());
         net = ModelSerializer.restoreMultiLayerNetwork(netFile);
     }
 
@@ -79,7 +79,7 @@ public class Lstm {
         double d = rng.nextDouble();
         double sum = 0.0;
 
-        double temperature = 0.2;
+        double temperature = 0.1;
 
         for (int i = 0; i < distribution.length; i++) {
             distribution[i] = Math.exp(Math.log(distribution[i])/temperature);
